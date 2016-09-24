@@ -18,6 +18,7 @@ http://www.nmahmoudi.ir/teaching.php
 ## Setting up
 
 You can add the git like this:
+
 	> git init
 	> git remote add origin https://gitlab.com/nima72/MM2016-Codes-Slides.git
 	> git pull origin master
