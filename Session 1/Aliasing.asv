@@ -6,7 +6,7 @@
 % 
 % This code is released under the GPLv3 license for non-commercial
 % use only. For other types of license please contact me.
-% 
+
 % Acknowlegment: Codes in this lecture are written by Dr. Seyeding,
 % so they are not my work.
 
@@ -31,7 +31,7 @@ f2=12400;
 y0 = sin((2*pi*f1/fs)*t);
 figure(1);
 subplot(1,2,1);
-plot(t(1:round(end/20)),y0(1:round(end/20)));
+plot(t(1:end/20),y0(1:end/20));
 title('First Signal');
 
 y1 = sin((2*pi*f2/fs)*t);
@@ -60,16 +60,19 @@ audiowrite('2sinus_alias10000.wav',y2,10000);
 audiowrite('2sinus_alias5000.wav',y3,5000);
 
 %% Playing Files
-% notice the frequencies changing as we downsample the audio files
 player = audioplayer(y,40000);
 play(player);
-% pause waits for user to press any key
 pause;
-
 player = audioplayer(y2,10000);
-play(player);  
-pause;
-
+play(player);
 player = audioplayer(y3,5000);
 play(player);
 
+%%
+
+player = audioplayer(y,40000);
+play(player);
+player = audioplayer(y2,10000);
+play(player);
+player = audioplayer(y3,5000);
+play(player);
