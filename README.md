@@ -6,9 +6,13 @@ Multimedia Systems course.
 
 Copyright (C) 2016 Nima Mahmoudi, Amirkabir University of Technology(AUT)
 
+## Complementary matrials
+you can find the complementary files in my website:
+http://www.nmahmoudi.ir/teaching.php
+
 ## Requirements
 
-* MATLAB 2015B
+* MATLAB 2015b
 * Computer Vision and Image Processing Toolboxes
 
 ## Contact

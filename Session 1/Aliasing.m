@@ -1,4 +1,3 @@
-
 %% Codes for AUT-Multimedia 2016 Course
 % Lecture 1: Aliasing in Audio Signals
 % 
