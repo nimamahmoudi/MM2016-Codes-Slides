@@ -24,6 +24,7 @@ You can add the git like this:
 	> git pull origin master
 
 And after that you can get new files by using these commands (note any files you created in this folder will be erased):
+
 	> git reset --hard
 	> git pull origin master
 
