@@ -1,7 +1,7 @@
 %% Codes for AUT-Multimedia 2016 Course
 % Lecture 3: Designing Filters for Audio Signals
 % 
-% Taught by: Nima Mahmoudi
+% Taught by: Nima Mahmoudi -- nima_mahmoudi@aut.ac.ir
 % 
 % This code is released under the GPLv3 license for non-commercial
 % use only. For other types of license please contact me.
