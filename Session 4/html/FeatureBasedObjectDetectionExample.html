@@ -1,0 +1,334 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Object Detection in a Cluttered Scene Using Point Feature Matching</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-10-31"><meta name="DC.source" content="FeatureBasedObjectDetectionExample.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Object Detection in a Cluttered Scene Using Point Feature Matching</h1><!--introduction--><p>This example shows how to detect a particular object in a cluttered scene, given a reference image of the object.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Overview</a></li><li><a href="#2">Step 1: Read Images</a></li><li><a href="#4">Step 2: Detect Feature Points</a></li><li><a href="#7">Step 3: Extract Feature Descriptors</a></li><li><a href="#8">Step 4: Find Putative Point Matches</a></li><li><a href="#10">Step 5: Locate the Object in the Scene Using Putative Matches</a></li><li><a href="#15">Step 7: Detect Another Object</a></li></ul></div><h2 id="1">Overview</h2><p>This example presents an algorithm for detecting a specific object based on finding point correspondences between the reference and the target image. It can detect objects despite a scale change or in-plane rotation. It is also robust to small amount of out-of-plane rotation and occlusion.</p><p>This method of object detection works best for objects that exhibit non-repeating texture patterns, which give rise to unique feature matches. This technique is not likely to work well for uniformly-colored objects, or for objects containing repeating patterns. Note that this algorithm is designed for detecting a specific object, for example, the elephant in the reference image, rather than any elephant. For detecting objects of a particular category, such as people or faces, see <tt>vision.PeopleDetector</tt> and <tt>vision.CascadeObjectDetector</tt>.</p><h2 id="2">Step 1: Read Images</h2><p>Read the reference image containing the object of interest.</p><pre class="codeinput">boxImage = imread(<span class="string">'stapleRemover.jpg'</span>);
+figure;
+imshow(boxImage);
+title(<span class="string">'Image of a Box'</span>);
+</pre><img vspace="5" hspace="5" src="FeatureBasedObjectDetectionExample_01.png" style="width:552px;height:397px;" alt=""> <p>Read the target image containing a cluttered scene.</p><pre class="codeinput">sceneImage = imread(<span class="string">'clutteredDesk.jpg'</span>);
+figure;
+imshow(sceneImage);
+title(<span class="string">'Image of a Cluttered Scene'</span>);
+</pre><img vspace="5" hspace="5" src="FeatureBasedObjectDetectionExample_02.png" style="width:978px;height:710px;" alt=""> <h2 id="4">Step 2: Detect Feature Points</h2><p>Detect feature points in both images.</p><pre class="codeinput">boxPoints = detectSURFFeatures(boxImage);
+scenePoints = detectSURFFeatures(sceneImage);
+</pre><p>Visualize the strongest feature points found in the reference image.</p><pre class="codeinput">figure;
+imshow(boxImage);
+title(<span class="string">'100 Strongest Feature Points from Box Image'</span>);
+hold <span class="string">on</span>;
+plot(selectStrongest(boxPoints, 100));
+</pre><img vspace="5" hspace="5" src="FeatureBasedObjectDetectionExample_03.png" style="width:552px;height:397px;" alt=""> <p>Visualize the strongest feature points found in the target image.</p><pre class="codeinput">figure;
+imshow(sceneImage);
+title(<span class="string">'300 Strongest Feature Points from Scene Image'</span>);
+hold <span class="string">on</span>;
+plot(selectStrongest(scenePoints, 300));
+</pre><img vspace="5" hspace="5" src="FeatureBasedObjectDetectionExample_04.png" style="width:978px;height:710px;" alt=""> <h2 id="7">Step 3: Extract Feature Descriptors</h2><p>Extract feature descriptors at the interest points in both images.</p><pre class="codeinput">[boxFeatures, boxPoints] = extractFeatures(boxImage, boxPoints);
+[sceneFeatures, scenePoints] = extractFeatures(sceneImage, scenePoints);
+</pre><h2 id="8">Step 4: Find Putative Point Matches</h2><p>Match the features using their descriptors.</p><pre class="codeinput">boxPairs = matchFeatures(boxFeatures, sceneFeatures);
+</pre><p>Display putatively matched features.</p><pre class="codeinput">matchedBoxPoints = boxPoints(boxPairs(:, 1), :);
+matchedScenePoints = scenePoints(boxPairs(:, 2), :);
+figure;
+showMatchedFeatures(boxImage, sceneImage, matchedBoxPoints, <span class="keyword">...</span>
+    matchedScenePoints, <span class="string">'montage'</span>);
+title(<span class="string">'Putatively Matched Points (Including Outliers)'</span>);
+</pre><img vspace="5" hspace="5" src="FeatureBasedObjectDetectionExample_05.png" style="width:1255px;height:504px;" alt=""> <h2 id="10">Step 5: Locate the Object in the Scene Using Putative Matches</h2><p><tt>estimateGeometricTransform</tt> calculates the transformation relating the matched points, while eliminating outliers. This transformation allows us to localize the object in the scene.</p><pre class="codeinput">[tform, inlierBoxPoints, inlierScenePoints] = <span class="keyword">...</span>
+    estimateGeometricTransform(matchedBoxPoints, matchedScenePoints, <span class="string">'affine'</span>);
+</pre><p>Display the matching point pairs with the outliers removed</p><pre class="codeinput">figure;
+showMatchedFeatures(boxImage, sceneImage, inlierBoxPoints, <span class="keyword">...</span>
+    inlierScenePoints, <span class="string">'montage'</span>);
+title(<span class="string">'Matched Points (Inliers Only)'</span>);
+</pre><img vspace="5" hspace="5" src="FeatureBasedObjectDetectionExample_06.png" style="width:1255px;height:504px;" alt=""> <p>Get the bounding polygon of the reference image.</p><pre class="codeinput">boxPolygon = [1, 1;<span class="keyword">...</span><span class="comment">                           % top-left</span>
+        size(boxImage, 2), 1;<span class="keyword">...</span><span class="comment">                 % top-right</span>
+        size(boxImage, 2), size(boxImage, 1);<span class="keyword">...</span><span class="comment"> % bottom-right</span>
+        1, size(boxImage, 1);<span class="keyword">...</span><span class="comment">                 % bottom-left</span>
+        1, 1];                   <span class="comment">% top-left again to close the polygon</span>
+</pre><p>Transform the polygon into the coordinate system of the target image. The transformed polygon indicates the location of the object in the scene.</p><pre class="codeinput">newBoxPolygon = transformPointsForward(tform, boxPolygon);
+</pre><p>Display the detected object.</p><pre class="codeinput">figure;
+imshow(sceneImage);
+hold <span class="string">on</span>;
+line(newBoxPolygon(:, 1), newBoxPolygon(:, 2), <span class="string">'Color'</span>, <span class="string">'y'</span>);
+title(<span class="string">'Detected Box'</span>);
+</pre><img vspace="5" hspace="5" src="FeatureBasedObjectDetectionExample_07.png" style="width:978px;height:710px;" alt=""> <h2 id="15">Step 7: Detect Another Object</h2><p>Detect a second object by using the same steps as before.</p><p>Read an image containing the second object of interest.</p><pre class="codeinput">elephantImage = imread(<span class="string">'elephant.jpg'</span>);
+figure;
+imshow(elephantImage);
+title(<span class="string">'Image of an Elephant'</span>);
+</pre><img vspace="5" hspace="5" src="FeatureBasedObjectDetectionExample_08.png" style="width:460px;height:390px;" alt=""> <p>Detect and visualize feature points.</p><pre class="codeinput">elephantPoints = detectSURFFeatures(elephantImage);
+figure;
+imshow(elephantImage);
+hold <span class="string">on</span>;
+plot(selectStrongest(elephantPoints, 100));
+title(<span class="string">'100 Strongest Feature Points from Elephant Image'</span>);
+</pre><img vspace="5" hspace="5" src="FeatureBasedObjectDetectionExample_09.png" style="width:460px;height:390px;" alt=""> <p>Extract feature descriptors.</p><pre class="codeinput">[elephantFeatures, elephantPoints] = extractFeatures(elephantImage, elephantPoints);
+</pre><p>Match Features</p><pre class="codeinput">elephantPairs = matchFeatures(elephantFeatures, sceneFeatures, <span class="string">'MaxRatio'</span>, 0.9);
+</pre><p>Display putatively matched features.</p><pre class="codeinput">matchedElephantPoints = elephantPoints(elephantPairs(:, 1), :);
+matchedScenePoints = scenePoints(elephantPairs(:, 2), :);
+figure;
+showMatchedFeatures(elephantImage, sceneImage, matchedElephantPoints, <span class="keyword">...</span>
+    matchedScenePoints, <span class="string">'montage'</span>);
+title(<span class="string">'Putatively Matched Points (Including Outliers)'</span>);
+</pre><img vspace="5" hspace="5" src="FeatureBasedObjectDetectionExample_10.png" style="width:1255px;height:504px;" alt=""> <p>Estimate Geometric Transformation and Eliminate Outliers</p><pre class="codeinput">[tform, inlierElephantPoints, inlierScenePoints] = <span class="keyword">...</span>
+    estimateGeometricTransform(matchedElephantPoints, matchedScenePoints, <span class="string">'affine'</span>);
+figure;
+showMatchedFeatures(elephantImage, sceneImage, inlierElephantPoints, <span class="keyword">...</span>
+    inlierScenePoints, <span class="string">'montage'</span>);
+title(<span class="string">'Matched Points (Inliers Only)'</span>);
+</pre><img vspace="5" hspace="5" src="FeatureBasedObjectDetectionExample_11.png" style="width:1255px;height:504px;" alt=""> <p>Display Both Objects</p><pre class="codeinput">elephantPolygon = [1, 1;<span class="keyword">...</span><span class="comment">                                 % top-left</span>
+        size(elephantImage, 2), 1;<span class="keyword">...</span><span class="comment">                       % top-right</span>
+        size(elephantImage, 2), size(elephantImage, 1);<span class="keyword">...</span><span class="comment">  % bottom-right</span>
+        1, size(elephantImage, 1);<span class="keyword">...</span><span class="comment">                       % bottom-left</span>
+        1,1];                         <span class="comment">% top-left again to close the polygon</span>
+
+newElephantPolygon = transformPointsForward(tform, elephantPolygon);
+
+figure;
+imshow(sceneImage);
+hold <span class="string">on</span>;
+line(newBoxPolygon(:, 1), newBoxPolygon(:, 2), <span class="string">'Color'</span>, <span class="string">'y'</span>);
+line(newElephantPolygon(:, 1), newElephantPolygon(:, 2), <span class="string">'Color'</span>, <span class="string">'g'</span>);
+title(<span class="string">'Detected Elephant and Box'</span>);
+</pre><img vspace="5" hspace="5" src="FeatureBasedObjectDetectionExample_12.png" style="width:978px;height:710px;" alt=""> <p class="footer">Copyright 1993-2014 The MathWorks, Inc.<br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Object Detection in a Cluttered Scene Using Point Feature Matching
+% This example shows how to detect a particular object in a cluttered scene,
+% given a reference image of the object. 
+
+%% Overview
+% This example presents an algorithm for detecting a specific object based 
+% on finding point correspondences between the reference and the target 
+% image. It can detect objects despite a scale change or in-plane 
+% rotation. It is also robust to small amount of out-of-plane rotation and 
+% occlusion.
+%
+% This method of object detection works best for objects that exhibit
+% non-repeating texture patterns, which give rise to unique feature matches. 
+% This technique is not likely to work well for uniformly-colored objects, 
+% or for objects containing repeating patterns. Note that this algorithm is
+% designed for detecting a specific object, for example, the elephant in 
+% the reference image, rather than any elephant. For detecting objects of a
+% particular category, such as people or faces, see |vision.PeopleDetector| 
+% and |vision.CascadeObjectDetector|.
+
+% Copyright 1993-2014 The MathWorks, Inc. 
+
+%% Step 1: Read Images
+% Read the reference image containing the object of interest.
+boxImage = imread('stapleRemover.jpg');
+figure;
+imshow(boxImage);
+title('Image of a Box');
+
+%%
+% Read the target image containing a cluttered scene.
+sceneImage = imread('clutteredDesk.jpg');
+figure; 
+imshow(sceneImage);
+title('Image of a Cluttered Scene');
+
+%% Step 2: Detect Feature Points
+% Detect feature points in both images.
+boxPoints = detectSURFFeatures(boxImage);
+scenePoints = detectSURFFeatures(sceneImage);
+
+%% 
+% Visualize the strongest feature points found in the reference image.
+figure; 
+imshow(boxImage);
+title('100 Strongest Feature Points from Box Image');
+hold on;
+plot(selectStrongest(boxPoints, 100));
+
+%% 
+% Visualize the strongest feature points found in the target image.
+figure; 
+imshow(sceneImage);
+title('300 Strongest Feature Points from Scene Image');
+hold on;
+plot(selectStrongest(scenePoints, 300));
+
+%% Step 3: Extract Feature Descriptors
+% Extract feature descriptors at the interest points in both images.
+[boxFeatures, boxPoints] = extractFeatures(boxImage, boxPoints);
+[sceneFeatures, scenePoints] = extractFeatures(sceneImage, scenePoints);
+
+%% Step 4: Find Putative Point Matches
+% Match the features using their descriptors. 
+boxPairs = matchFeatures(boxFeatures, sceneFeatures);
+
+%% 
+% Display putatively matched features. 
+matchedBoxPoints = boxPoints(boxPairs(:, 1), :);
+matchedScenePoints = scenePoints(boxPairs(:, 2), :);
+figure;
+showMatchedFeatures(boxImage, sceneImage, matchedBoxPoints, ...
+    matchedScenePoints, 'montage');
+title('Putatively Matched Points (Including Outliers)');
+
+%% Step 5: Locate the Object in the Scene Using Putative Matches
+% |estimateGeometricTransform| calculates the transformation relating the
+% matched points, while eliminating outliers. This transformation allows us
+% to localize the object in the scene.
+[tform, inlierBoxPoints, inlierScenePoints] = ...
+    estimateGeometricTransform(matchedBoxPoints, matchedScenePoints, 'affine');
+
+%%
+% Display the matching point pairs with the outliers removed
+figure;
+showMatchedFeatures(boxImage, sceneImage, inlierBoxPoints, ...
+    inlierScenePoints, 'montage');
+title('Matched Points (Inliers Only)');
+
+%% 
+% Get the bounding polygon of the reference image.
+boxPolygon = [1, 1;...                           % top-left
+        size(boxImage, 2), 1;...                 % top-right
+        size(boxImage, 2), size(boxImage, 1);... % bottom-right
+        1, size(boxImage, 1);...                 % bottom-left
+        1, 1];                   % top-left again to close the polygon
+
+%%
+% Transform the polygon into the coordinate system of the target image.
+% The transformed polygon indicates the location of the object in the
+% scene.
+newBoxPolygon = transformPointsForward(tform, boxPolygon);    
+
+%%
+% Display the detected object.
+figure;
+imshow(sceneImage);
+hold on;
+line(newBoxPolygon(:, 1), newBoxPolygon(:, 2), 'Color', 'y');
+title('Detected Box');
+
+%% Step 7: Detect Another Object
+% Detect a second object by using the same steps as before.
+
+%%
+% Read an image containing the second object of interest.  
+elephantImage = imread('elephant.jpg');
+figure;
+imshow(elephantImage);
+title('Image of an Elephant');
+
+%% 
+% Detect and visualize feature points.
+elephantPoints = detectSURFFeatures(elephantImage);
+figure;
+imshow(elephantImage);
+hold on;
+plot(selectStrongest(elephantPoints, 100));
+title('100 Strongest Feature Points from Elephant Image');
+
+%%
+% Extract feature descriptors.
+[elephantFeatures, elephantPoints] = extractFeatures(elephantImage, elephantPoints);
+
+%% 
+% Match Features
+elephantPairs = matchFeatures(elephantFeatures, sceneFeatures, 'MaxRatio', 0.9);
+
+
+%%
+% Display putatively matched features.
+matchedElephantPoints = elephantPoints(elephantPairs(:, 1), :);
+matchedScenePoints = scenePoints(elephantPairs(:, 2), :);
+figure;
+showMatchedFeatures(elephantImage, sceneImage, matchedElephantPoints, ...
+    matchedScenePoints, 'montage');
+title('Putatively Matched Points (Including Outliers)');
+
+%% 
+% Estimate Geometric Transformation and Eliminate Outliers
+[tform, inlierElephantPoints, inlierScenePoints] = ...
+    estimateGeometricTransform(matchedElephantPoints, matchedScenePoints, 'affine');
+figure;
+showMatchedFeatures(elephantImage, sceneImage, inlierElephantPoints, ...
+    inlierScenePoints, 'montage');
+title('Matched Points (Inliers Only)');
+
+%% 
+% Display Both Objects
+elephantPolygon = [1, 1;...                                 % top-left
+        size(elephantImage, 2), 1;...                       % top-right
+        size(elephantImage, 2), size(elephantImage, 1);...  % bottom-right
+        1, size(elephantImage, 1);...                       % bottom-left
+        1,1];                         % top-left again to close the polygon
+ 
+newElephantPolygon = transformPointsForward(tform, elephantPolygon);    
+
+figure;
+imshow(sceneImage);
+hold on;
+line(newBoxPolygon(:, 1), newBoxPolygon(:, 2), 'Color', 'y');
+line(newElephantPolygon(:, 1), newElephantPolygon(:, 2), 'Color', 'g');
+title('Detected Elephant and Box');
+
+%%
+
+displayEndOfDemoMessage(mfilename)
+
+##### SOURCE END #####
+--></body></html>
