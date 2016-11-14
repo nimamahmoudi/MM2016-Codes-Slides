@@ -30,4 +30,4 @@ And after that you can get new files by using these commands (note any files you
 
 ## Contact
 
-In case you need any questions regarding the code, contact me at nima_mahmoudi@live.com
+In case you have any questions regarding the code, contact me at nima_mahmoudi@live.com
