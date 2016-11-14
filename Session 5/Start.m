@@ -8,6 +8,9 @@
 %
 % Fall 2016
 
+%% Add paths for RastaMat
+addpaths
+
 %% Read and Play an Audio File
 file_name = 'FAK_1B.08.wav';
 [y, Fs] = audioread(file_name);
